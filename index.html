@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Athlete Performance & Nutrition Hub</title>
+    <!-- Link to external CSS stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Main Header -->
+    <header class="app-header">
+        <div class="logo">
+            <span class="icon">⚡</span>
+            <h1>Athlete Performance & Nutrition Hub</h1>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('calculatorTab', this)">Nutrition Calculator</button>
+        <button class="tab-btn" onclick="switchTab('loggerTab', this)">Daily Tracker</button>
+        <button class="tab-btn" onclick="switchTab('timerTab', this)">Workout Timer</button>
+    </nav>
+
+    <main class="dashboard-container">
+
+        <!-- TAB 1: NUTRITION CALCULATOR -->
+        <section id="calculatorTab" class="tab-content active">
+            <div class="card">
+                <h2>🔥 Daily Calorie & Macro Planner</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="weight">Body Weight (kg):</label>
+                        <input type="number" id="weight" placeholder="e.g., 70" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="goal">Primary Goal:</label>
+                        <select id="goal">
+                            <option value="0.85">Fat Loss / Cutting</option>
+                            <option value="1.0" selected>Maintenance</option>
+                            <option value="1.15">Muscle Gain / Bulking</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="activity">Training Intensity:</label>
+                        <select id="activity">
+                            <option value="1.2">Light / Low Activity (1.2)</option>
+                            <option value="1.55" selected>Moderate Athlete (1.55)</option>
+                            <option value="1.9">Elite / Heavy Athlete (1.9)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="primary-btn" onclick="calculateNutrition()">Calculate Nutrition Targets</button>
+
+                <div class="output-box" id="calorieResult" style="display: none;">
+                    <h3>Calculated Daily Goals</h3>
+                    <div class="macro-badges">
+                        <div class="badge badge-calories"><span id="resCal">0</span> kcal</div>
+                        <div class="badge badge-protein">Protein: <span id="resProt">0</span>g</div>
+                        <div class="badge badge-carbs">Carbs: <span id="resCarb">0</span>g</div>
+                        <div class="badge badge-fats">Fats: <span id="resFat">0</span>g</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: DAILY MEAL LOGGER -->
+        <section id="loggerTab" class="tab-content">
+            <div class="card">
+                <h2>🥗 Daily Meal & Calorie Logger</h2>
+                <p class="subtitle">Log your meals throughout the day to monitor your daily target intake.</p>
+
+                <!-- Calorie Progress Bar -->
+                <div class="progress-section">
+                    <div class="progress-label">
+                        <span>Daily Intake Progress</span>
+                        <span><strong id="loggedCalories">0</strong> / <span id="targetCalories">2000</span> kcal</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="calorieProgressBar"></div>
+                    </div>
+                </div>
+
+                <!-- Meal Input Form -->
+                <div class="inline-form">
+                    <input type="text" id="mealName" placeholder="Meal / Snack Name (e.g., Oats & Eggs)">
+                    <input type="number" id="mealCals" placeholder="Calories (kcal)">
+                    <button class="secondary-btn" onclick="addMeal()">Add Meal</button>
+                </div>
+
+                <!-- Meal List Table -->
+                <ul class="meal-list" id="mealList">
+                    <li class="empty-msg">No meals logged yet today.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- TAB 3: WORKOUT TIMER -->
+        <section id="timerTab" class="tab-content">
+            <div class="card text-center">
+                <h2>⏱️ Training Session Timer</h2>
+                <p class="subtitle">Use structured intervals for your workouts and study blocks.</p>
+
+                <div class="timer-display" id="timerDisplay">25:00</div>
+
+                <div class="button-group">
+                    <button class="btn-success" onclick="startTimer()">Start</button>
+                    <button class="btn-warning" onclick="pauseTimer()">Pause</button>
+                    <button class="btn-danger" onclick="resetTimer()">Reset</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Tab Switcher Functionality
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // Global State Variables
+        let targetCalorieGoal = 2000;
+        let currentTotalCalories = 0;
+
+        // Feature 1: Dynamic Nutrition Calculator
+        function calculateNutrition() {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const activity = parseFloat(document.getElementById('activity').value);
+            const goal = parseFloat(document.getElementById('goal').value);
+
+            if (isNaN(weight) || weight <= 0) {
+                alert('Please enter a valid weight in kg!');
+                return;
+            }
+
+            // Maintenance BMR estimation formula * activity factor * goal multiplier
+            const totalCalories = Math.round((weight * 22 * activity) * goal);
+            const protein = Math.round(weight * 2.0); // 2g per kg
+            const carbs = Math.round((totalCalories * 0.5) / 4); // 50% calories
+            const fats = Math.round((totalCalories * 0.25) / 9); // 25% calories
+
+            targetCalorieGoal = totalCalories;
+
+            // Update UI Badges
+            document.getElementById('resCal').innerText = totalCalories;
+            document.getElementById('resProt').innerText = protein;
+            document.getElementById('resCarb').innerText = carbs;
+            document.getElementById('resFat').innerText = fats;
+
+            document.getElementById('targetCalories').innerText = totalCalories;
+            document.getElementById('calorieResult').style.display = 'block';
+
+            updateProgressBar();
+        }
+
+        // Feature 2: Meal Tracker & Progress Calculation
+        function addMeal() {
+            const nameInput = document.getElementById('mealName');
+            const calsInput = document.getElementById('mealCals');
+
+            const mealName = nameInput.value.trim();
+            const mealCals = parseInt(calsInput.value);
+
+            if (!mealName || isNaN(mealCals) || mealCals <= 0) {
+                alert('Please enter a valid meal name and calorie count.');
+                return;
+            }
+
+            const mealList = document.getElementById('mealList');
+            if (mealList.querySelector('.empty-msg')) {
+                mealList.innerHTML = '';
+            }
+
+            // Create Meal Item List Row
+            const li = document.createElement('li');
+            li.className = 'meal-item';
+            li.innerHTML = `
+                <span><strong>${mealName}</strong> - ${mealCals} kcal</span>
+                <button class="remove-btn" onclick="removeMeal(this, ${mealCals})">Remove</button>
+            `;
+
+            mealList.appendChild(li);
+
+            // Update Calories
+            currentTotalCalories += mealCals;
+            document.getElementById('loggedCalories').innerText = currentTotalCalories;
+
+            updateProgressBar();
+
+            // Clear Inputs
+            nameInput.value = '';
+            calsInput.value = '';
+        }
+
+        function removeMeal(button, calories) {
+            button.parentElement.remove();
+            currentTotalCalories -= calories;
+            document.getElementById('loggedCalories').innerText = currentTotalCalories;
+
+            const mealList = document.getElementById('mealList');
+            if (mealList.children.length === 0) {
+                mealList.innerHTML = '<li class="empty-msg">No meals logged yet today.</li>';
+            }
+
+            updateProgressBar();
+        }
+
+        function updateProgressBar() {
+            const percentage = Math.min(Math.round((currentTotalCalories / targetCalorieGoal) * 100), 100);
+            const progressBar = document.getElementById('calorieProgressBar');
+            progressBar.style.width = percentage + '%';
+
+            if (percentage >= 100) {
+                progressBar.style.backgroundColor = '#e74c3c'; // Red if goal reached or exceeded
+            } else {
+                progressBar.style.backgroundColor = '#27ae60'; // Green
+            }
+        }
+
+        // Feature 3: Workout Timer Logic
+        let timerInterval;
+        let timeLeft = 1500; // 25 mins
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    let mins = Math.floor(timeLeft / 60);
+                    let secs = timeLeft % 60;
+                    document.getElementById('timerDisplay').innerText = 
+                        `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                } else {
+                    clearInterval(timerInterval);
+                    alert('Session completed!');
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 1500;
+            document.getElementById('timerDisplay').innerText = "25:00";
+        }
+    </script>
+
+</body>
+</html>
